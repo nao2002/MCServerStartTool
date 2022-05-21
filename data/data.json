@@ -1,0 +1,10 @@
+﻿{
+    "path": "",
+    "dirPath": "",
+    "mcVersion": "1.16.x以前",
+    "vanila": "1",
+    "memory": "4096",
+    "memoryUnit": "MB",
+    "gui": "1",
+    "log4j2": "1"
+}
