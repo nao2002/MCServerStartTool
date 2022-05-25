@@ -8,6 +8,8 @@ import startServer
 import sys
 import os
 import searchJava
+import webbrowser
+from resetData import resetData
 
 windows = {}
 saved_content = {}
@@ -116,7 +118,7 @@ def detailWindow():
 
     # メインウィンドウ
     detail_win.title("詳細設定")
-    detail_win.geometry("420x310")
+    detail_win.geometry("420x410")
     detail_win.resizable(width=False, height=False)
 
     # メインフレーム
@@ -159,6 +161,12 @@ def detailWindow():
     variable=log4j2_var, onvalue='1', offvalue='0',
     command=partial(toggleButtonSave, log4j2_var, "log4j2"))
 
+    reset_label = ttk.Label(main_frm, text="初期状態に戻す")
+    reset_btn = ttk.Button(main_frm, text="リセット", command=resetAsk)
+
+    support_label = ttk.Label(main_frm, text="開発者を支援する")
+    support_btn = ttk.Button(main_frm, text="支援する", command=partial(openBrowser,'https://paypal.me/lyomiproj/'))
+
     # ウィジェット作成（実行ボタン）
     back_btn = ttk.Button(main_frm, text="戻る", command=toMainWindow)
 
@@ -185,7 +193,11 @@ def detailWindow():
     memory_comb.place(x=300, y=135, width=70)
     gui_toggle.place(x=13, y=170)
     log4j2_toggle.place(x=13, y=205)
-    back_btn.place(x=150, y=260, width=100)
+    reset_label.place(x=20, y=250)
+    reset_btn.place(x=270, y=250, width=100, height=25)
+    support_label.place(x=20, y=300)
+    support_btn.place(x=270, y=300, width=100, height=25)
+    back_btn.place(x=150, y=360, width=100)
 
     # 配置設定
     detail_win.columnconfigure(0, weight=1)
@@ -318,3 +330,13 @@ def select_java():
         for i in java_paths:
             windows["listData"].insert(tk.END, f"Java{i}." + java_paths[i]["detail"] + " - " + java_paths[i]["bit"] + "bit", java_paths[i]["path"], "")
         tk.messagebox.showinfo("処理成功", "反映しました")
+
+def resetAsk():
+    ret = tk.messagebox.askyesno('リセット', '初期状態に戻します。\n実行しますか？')
+    if ret == True:
+            resetData()
+            tk.messagebox.showinfo("処理成功", "リセットしました。")
+            toMainWindow()
+
+def openBrowser(url):
+    webbrowser.open(url)
