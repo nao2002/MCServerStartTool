@@ -18,10 +18,14 @@ def startServer(saved_content):
                 returnText = check_bit(java_paths["16"]["path"],java_paths["16"]["bit"], saved_content)
             elif "17" in java_paths:
                 returnText = check_bit(java_paths["17"]["path"],java_paths["17"]["bit"], saved_content)
+            elif "18" in java_paths:
+                returnText = check_bit(java_paths["17"]["path"],java_paths["17"]["bit"], saved_content)
             else:
                 returnText = search_path("16", saved_content)
         elif saved_content["mcVersion"] == "1.18.x":
             if "17" in java_paths:
+                returnText = check_bit(java_paths["17"]["path"],java_paths["17"]["bit"], saved_content)
+            elif "18" in java_paths:
                 returnText = check_bit(java_paths["17"]["path"],java_paths["17"]["bit"], saved_content)
             else:
                 returnText = search_path("17", saved_content)
@@ -36,12 +40,18 @@ def search_path(ver, saved_content):
     java_paths = json.load(json_open)
     if ver in java_paths:
         return check_bit(java_paths[ver]["path"],java_paths[ver]["bit"],saved_content)
+    elif ver == "16" and "17" in java_paths:
+        return check_bit(java_paths["17"]["path"],java_paths["17"]["bit"],saved_content)
+    elif ver == "16" and "18" in java_paths:
+        return check_bit(java_paths["18"]["path"],java_paths["18"]["bit"],saved_content)
+    elif ver == "17" and "18" in java_paths:
+        return check_bit(java_paths["18"]["path"],java_paths["18"]["bit"],saved_content)
     else:
         javaV = "8"
         if ver == "16":
-            javaV = "16"
+            javaV = "16以上"
         elif ver == "17":
-            javaV = "17"
+            javaV = "17以上"
         return f"Java{javaV}を自動検出できませんでした\nJava設定ウィンドウで設定をしてください"
 
 def check_bit(javaPath, bit, saved_content):
