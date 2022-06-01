@@ -93,4 +93,4 @@ def use_command(javaPath, saved_content):
     if cmdRun.returncode == 0:
         return ""
     else:
-        return "サーバーの実行中にエラーが発生しました\nマイクラのバージョン項目が合っているか確認してください。\nその他の場合、鯖が複数立っていたりmodが競合していたりする可能性があります。"
+        return "サーバーの実行中にエラーが発生しました\nサーバーファイルを指定し直してみてください"

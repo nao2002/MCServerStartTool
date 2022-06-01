@@ -16,6 +16,8 @@ set log4j=
 
 cd /d "%~2"
 
+taskkill /F /IM MCServerStarter.exe > nul
+
 java -Xms%4 -Xmx%4 %log4j%-jar "%~3"%~6
 
 pause

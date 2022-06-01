@@ -9,7 +9,7 @@ import sys
 import os
 import searchJava
 import webbrowser
-from resetData import resetData
+import resetData
 
 windows = {}
 saved_content = {}
@@ -334,7 +334,8 @@ def select_java():
 def resetAsk():
     ret = tk.messagebox.askyesno('リセット', '初期状態に戻します。\n実行しますか？')
     if ret == True:
-            resetData()
+            resetData.resetData()
+            get_json()
             tk.messagebox.showinfo("処理成功", "リセットしました。")
             toMainWindow()
 
