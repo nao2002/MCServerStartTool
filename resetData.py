@@ -10,7 +10,9 @@ def resetData():
         "memory": "4096",
         "memoryUnit": "MB",
         "gui": "1",
-        "log4j2": "1"
+        "log4j2": "1",
+        "x": -1.0,
+        "y": -1.0
     }
     json.dump(content, json_write, ensure_ascii=False, indent=4)
 

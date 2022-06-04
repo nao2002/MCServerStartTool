@@ -29,7 +29,12 @@ def mainWindow():
 
     # メインウィンドウ
     main_win.title("MC_Server_Starter")
-    main_win.geometry("520x150")
+    if saved_content["x"] <= -1.0:
+        main_win.geometry("520x150")
+    else:
+        x = saved_content["x"]
+        y = saved_content["y"]
+        main_win.geometry(f"520x150+{x}+{y}")
     main_win.resizable(width=False, height=False)
 
     # メインフレーム
@@ -88,6 +93,7 @@ def mainWindow():
 
     windows["now"] = main_win
     windows["frm"] = main_frm
+    main_win.protocol("WM_DELETE_WINDOW", click_close)
     main_win.mainloop()
 
 def start():
@@ -97,8 +103,6 @@ def start():
     if errorMessage != "":
         windows["now"].wm_state('normal')
         tk.messagebox.showwarning("エラーが発生しました", errorMessage)
-    else:
-        sys.exit()
 
 def select_path():
     path = selectFiles.openFiledialog(saved_content["dirPath"],saved_content["path"])
@@ -109,6 +113,9 @@ def select_path():
 def toDetailWindow():
     global windows
     print(windows)
+    saved_content["x"] = windows["now"].winfo_x()
+    saved_content["y"] = windows["now"].winfo_y()
+    save_json()
     windows["now"].destroy()
     detailWindow()
     
@@ -118,7 +125,9 @@ def detailWindow():
 
     # メインウィンドウ
     detail_win.title("詳細設定")
-    detail_win.geometry("420x410")
+    x = saved_content["x"]
+    y = saved_content["y"]
+    detail_win.geometry(f"420x410+{x}+{y}")
     detail_win.resizable(width=False, height=False)
 
     # メインフレーム
@@ -206,10 +215,14 @@ def detailWindow():
 
     windows["now"] = detail_win
     windows["frm"] = main_frm
+    detail_win.protocol("WM_DELETE_WINDOW", click_close)
     detail_win.mainloop()
 
 def toJavaWindow():
     global windows
+    saved_content["x"] = windows["now"].winfo_x()
+    saved_content["y"] = windows["now"].winfo_y()
+    save_json()
     windows["now"].destroy()
     javaWindow()
 
@@ -219,7 +232,9 @@ def javaWindow():
 
     # メインウィンドウ
     java_win.title("JAVAPATH設定")
-    java_win.geometry("520x300")
+    x = saved_content["x"]
+    y = saved_content["y"]
+    java_win.geometry(f"520x300+{x}+{y}")
     java_win.resizable(width=False, height=False)
 
     # メインフレーム
@@ -265,6 +280,7 @@ def javaWindow():
 
     windows["now"] = java_win
     windows["frm"] = main_frm
+    java_win.protocol("WM_DELETE_WINDOW", click_close)
     java_win.mainloop()
 
 def select_dir():
@@ -276,6 +292,9 @@ def select_dir():
 
 def toMainWindow():
     global windows
+    saved_content["x"] = windows["now"].winfo_x()
+    saved_content["y"] = windows["now"].winfo_y()
+    save_json()
     windows["now"].destroy()
     mainWindow()
 
@@ -341,3 +360,11 @@ def resetAsk():
 
 def openBrowser(url):
     webbrowser.open(url)
+
+def click_close():
+    global windows
+    saved_content["x"] = windows["now"].winfo_x()
+    saved_content["y"] = windows["now"].winfo_y()
+    save_json()
+    windows["now"].destroy()
+    sys.exit()

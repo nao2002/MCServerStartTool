@@ -6,5 +6,7 @@
     "memory": "4096",
     "memoryUnit": "MB",
     "gui": "1",
-    "log4j2": "1"
+    "log4j2": "1",
+    "x": 588,
+    "y": 316
 }
