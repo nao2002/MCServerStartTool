@@ -12,7 +12,11 @@ def startServer(saved_content):
             if "8" in java_paths:
                 returnText = check_bit(java_paths["8"]["path"],java_paths["8"]["bit"], saved_content)
             else:
-                returnText = search_path("8", saved_content)
+                for v in java_paths:
+                    if v in ["8","9","10","11","12","13","14","15"]:
+                        returnText = check_bit(java_paths[v]["path"],java_paths[v]["bit"],saved_content)
+                if returnText == "":
+                    returnText = search_path("8", saved_content)
         elif saved_content["mcVersion"] == "1.17.x":
             if "16" in java_paths:
                 returnText = check_bit(java_paths["16"]["path"],java_paths["16"]["bit"], saved_content)
@@ -40,14 +44,21 @@ def search_path(ver, saved_content):
     java_paths = json.load(json_open)
     if ver in java_paths:
         return check_bit(java_paths[ver]["path"],java_paths[ver]["bit"],saved_content)
+
     elif ver == "16" and "17" in java_paths:
         return check_bit(java_paths["17"]["path"],java_paths["17"]["bit"],saved_content)
     elif ver == "16" and "18" in java_paths:
         return check_bit(java_paths["18"]["path"],java_paths["18"]["bit"],saved_content)
+
     elif ver == "17" and "18" in java_paths:
         return check_bit(java_paths["18"]["path"],java_paths["18"]["bit"],saved_content)
+        
     else:
-        javaV = "8"
+        if ver == "8":
+            for v in java_paths:
+                if v in ["8","9","10","11","12","13","14","15"]:
+                    return check_bit(java_paths[v]["path"],java_paths[v]["bit"],saved_content)
+        javaV = "8~15"
         if ver == "16":
             javaV = "16以上"
         elif ver == "17":

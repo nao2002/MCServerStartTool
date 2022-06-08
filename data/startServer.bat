@@ -5,6 +5,8 @@ rem ServerStarter 起動用batファイル created by lyomi_project
 rem 以下対応引数
 rem (startServer.bat) javaパス サーバーディレクトリ サーバーファイル 割り当てメモリ(****M、*G) マイクラver その他引数(nogui等)
 
+title Server
+
 set PATH="%~1";%PATH%
 
 set log4j=-Dlog4j.configurationFile=log4j2_112-116.xml 
