@@ -51,16 +51,9 @@ def mainWindow():
     #マイクラバージョン
     version_label = ttk.Label(main_frm, text="マイクラのバージョン")
     versionVar = StringVar(value=str(saved_content["mcVersion"]))
-    version_comb = ttk.Combobox(main_frm, textvariable=versionVar, values=["1.16.x以前", "1.17.x","1.18.x"], width=12, state="readonly")
+    version_comb = ttk.Combobox(main_frm, textvariable=versionVar, values=["1.18.x以降","1.17.x","1.12.x-1.16.x","1.11.x以前"], width=12, state="readonly")
     version_comb.bind('<<ComboboxSelected>>', versionComboSelect)
     windows["versionComb"] = version_comb
-
-    #バニラマイクラ
-    vanila_var = StringVar(value=str(saved_content["vanila"]))
-    vanila_toggle = ttk.Checkbutton(
-    main_frm, padding=(10), text='バニラのサーバー',
-    variable=vanila_var, onvalue='1', offvalue='0',
-    command=partial(toggleButtonSave, vanila_var, "vanila"))
 
     #実行ボタン
     app_btn = ttk.Button(main_frm, text="起動", command=start)
@@ -73,16 +66,14 @@ def mainWindow():
     #folder_btn.grid(column=4, row=0)
     #version_label.grid(column=0, row=1)
     #version_comb.grid(column=1, row=1, sticky=tk.W, padx=5)
-    #vanila_toggle.grid(column=3, row=1)
     #app_btn.grid(column=1, row=3, pady=15, sticky=tk.W)
     #detail_btn.grid(column=3,row=3, sticky=tk.E)
 
     folder_label.place(x=5, y=10)
     folder_box.place(x=85, y=10, width=340, height=23)
     folder_btn.place(x=425, y=9, height=25)
-    version_label.place(x=16, y=55)
-    version_comb.place(x=125, y=54)
-    vanila_toggle.place(x=310,y=47)
+    version_label.place(x=126, y=55)
+    version_comb.place(x=235, y=54)
     app_btn.place(x=85,y=95, width=100, height=25)
     detail_btn.place(x=315,y=95,width=110,height=25)
 
@@ -166,7 +157,7 @@ def detailWindow():
     #log4j2対応
     log4j2_var = StringVar(value=str(saved_content["log4j2"]))
     log4j2_toggle = ttk.Checkbutton(
-    main_frm, padding=(10), text='log4j2対策を有効化　*ver1.17.x以下のバニラサーバーのみ反映',
+    main_frm, padding=(10), text='log4j2対策を有効化　*ver1.6以下/ver1.18以上は必要なし',
     variable=log4j2_var, onvalue='1', offvalue='0',
     command=partial(toggleButtonSave, log4j2_var, "log4j2"))
 

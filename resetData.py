@@ -5,8 +5,7 @@ def resetData():
     content = {
         "path": "",
         "dirPath": "",
-        "mcVersion": "1.16.x以前",
-        "vanila": "1",
+        "mcVersion": "1.18.x以降",
         "memory": "2048",
         "memoryUnit": "MB",
         "gui": "1",

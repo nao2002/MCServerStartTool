@@ -9,11 +9,17 @@ title Server
 
 set PATH="%~1";%PATH%
 
-set log4j=-Dlog4j.configurationFile=log4j2_112-116.xml 
-if %5 == 17 (
-set log4j=-Dlog4j2.formatMsgNoLookups=true 
-) else if %5 == 18 (
+cd /d %~dp0
+
 set log4j=
+if %7 == 17 (
+set log4j=-Dlog4j2.formatMsgNoLookups=true 
+) else if %7 == 11 (
+set log4j=-Dlog4j.configurationFile=log4j2_17-111.xml 
+copy /Y log4j2_17-111.xml "%~2" > nul
+) else if %7 == 16 (
+set log4j=-Dlog4j.configurationFile=log4j2_112-116.xml 
+copy /Y log4j2_112-116.xml "%~2" > nul
 )
 
 cd /d "%~2"

@@ -8,7 +8,7 @@ def startServer(saved_content):
     if saved_content["path"] != "":
         json_open = open("data/java_path.json",'r',encoding="utf-8_sig")
         java_paths = json.load(json_open)
-        if saved_content["mcVersion"] == "1.16.x以前":
+        if saved_content["mcVersion"] == "1.12.x-1.16.x" or saved_content["mcVersion"] == "1.11.x以前":
             if "8" in java_paths:
                 returnText = check_bit(java_paths["8"]["path"],java_paths["8"]["bit"], saved_content)
             else:
@@ -26,7 +26,7 @@ def startServer(saved_content):
                 returnText = check_bit(java_paths["17"]["path"],java_paths["17"]["bit"], saved_content)
             else:
                 returnText = search_path("16", saved_content)
-        elif saved_content["mcVersion"] == "1.18.x":
+        elif saved_content["mcVersion"] == "1.18.x以降":
             if "17" in java_paths:
                 returnText = check_bit(java_paths["17"]["path"],java_paths["17"]["bit"], saved_content)
             elif "18" in java_paths:
@@ -94,13 +94,19 @@ def use_command(javaPath, saved_content):
         unit = "G"
     memory = memory + unit
 
+    log4jON = "16"
     mcVer = "16"
     if saved_content["mcVersion"] == "1.17.x":
         mcVer = "17"
-    elif saved_content["mcVersion"] == "1.18.x":
+        log4jON = "17"
+    elif saved_content["mcVersion"] == "1.18.x以降":
         mcVer = "18"
-    if saved_content["log4j2"] == 0 or saved_content["vanila"] == 0:
-        mcVer = "18"
+        log4jON = "18"
+
+    if saved_content["log4j2"] == 0:
+        log4jON = "0"
+    elif saved_content["mcVersion"] == "1.11.x以前":
+        log4jON = "11"
 
     print(pathDir)
 
@@ -108,7 +114,7 @@ def use_command(javaPath, saved_content):
     if saved_content["gui"] == "0":
         others = others + " nogui"
 
-    command = ['data\openStarter.bat',f"{javaPath}",f"{pathDir}",f"{path}",memory,mcVer,f"{others}"]
+    command = ['data\openStarter.bat',f"{javaPath}",f"{pathDir}",f"{path}",memory,mcVer,f"{others}",log4jON]
     cmdRun = subprocess.run(command, stdout = subprocess.PIPE)
     print(cmdRun)
     if cmdRun.returncode == 0:
