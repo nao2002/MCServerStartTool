@@ -20,7 +20,7 @@ modサーバーやプラグインサーバーもおそらく起動できると�
 
 <h2 id="download">・Download</h2>
 <h4>二次配布は禁止です Not for redistribution</h4>
-<h4><a href="https://drive.google.com/file/d/1lRHUTVoPxt0wi2GnGXYnuki1d7Qt35-d/view?usp=sharing">Download MCServerStarter</a></h4>
+<h4><a href="https://drive.google.com/file/d/1-yoNqGRLe6d2R9aBLqcFaKoUIIFdf0tb/view?usp=sharing">Download MCServerStarter</a></h4>
 ver 1.0.0
 <br><br>
 
