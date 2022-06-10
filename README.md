@@ -15,8 +15,8 @@
 などの手順を省くことができます。<br>
 modサーバーやプラグインサーバーもおそらく起動できると思います
 <h4>※ポートを開放できるツールではありません</h4><br>
-<a href="https://www.minecraft.net/ja-jp/download/server">サーバー本体</a>及び<a href="https://www.oracle.com/java/technologies/downloads/">各java</a>は自動でダウンロードはできません。
-手動で入れていただくようお願いいたします。
+<a href="https://www.minecraft.net/ja-jp/download/server">サーバー本体</a>及び<a href="https://www.oracle.com/java/technologies/downloads/">各java</a>は自動でダウンロードはできません<br>
+手動で入れていただくようお願いいたします
 <br><br>
 
 <h2 id="download">・Download</h2>
@@ -34,7 +34,7 @@ ver 1.0.0
 ・実行ボタンを押す<br>
 ※ツール初回実行時はjavaを検出するため起動に少し時間がかかります<br><br>
 ・サーバー初回起動時の場合<br>
-実行ファイルを押した後、サーバーファイルの同階層に利用規約であるeula.txtファイルが作成されます。<br>
+実行ファイルを押した後、サーバーファイルの同階層に利用規約であるeula.txtファイルが作成されます<br>
 <a href="https://account.mojang.com/documents/minecraft_eula">規約</a>を確認し、同意する場合eula=falseをeula=trueに書き換えて再度実行してください<br><br>
 ・詳細設定<br>
 サーバーの割り当てメモリ量の変更や、GUIの表示非表示などを切り替えができます<br>
