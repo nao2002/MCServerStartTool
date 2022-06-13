@@ -17,11 +17,11 @@ class SearchJava(Enum):
 
 def search_path(way = SearchJava.QUICK, priority = SearchJava.NEW, bit = SearchJava.ALLBIT):
     if priority != SearchJava.NEW and priority != SearchJava.OLD:
-        raise Exception('Error argument "priority" needs only SearchJava.NEW or SearchJava.OLD')
+        raise Exception('Error argument "priority" required SearchJava.NEW or SearchJava.OLD')
     if bit != SearchJava.ALLBIT and bit != 32 and bit != 64:
-        raise Exception('Error argument "bit" needs only SearchJava.ALLBIT or 32 (int) or 64 (int)')
+        raise Exception('Error argument "bit" required SearchJava.ALLBIT or 32 (int) or 64 (int)')
     if way == SearchJava.NEW or way == SearchJava.OLD or way == SearchJava.ALLBIT:
-        raise Exception('Error argument "way" can use SearchJava.QUICK or SearchJava.FULL or file path (str, example: "C:\\Program Files*\\**\\java.exe")')
+        raise Exception('Error argument "way" required SearchJava.QUICK or SearchJava.FULL or file path (str, example: "C:\\Program Files*\\**\\java.exe")')
 
     if way == SearchJava.QUICK:
         return __search_main("C:\\Program Files*\\**\\bin\\java.exe", priority, bit)
@@ -153,11 +153,11 @@ def compound_javaLists(paths1, paths2, priority=SearchJava.NEW, bit=SearchJava.A
     compound_list = {}
 
     if type(paths1) != dict or type(paths2) != dict:
-        raise Exception('Error not collect arguments: the method "compound_javaLists" must needs 2 dict type arguments')
+        raise Exception('Error not collect arguments: the method "compound_javaLists" required 2 dict type arguments')
     if priority != SearchJava.NEW and priority != SearchJava.OLD:
-        raise Exception('Error argument "priority" needs only SearchJava.NEW or SearchJava.OLD')
+        raise Exception('Error argument "priority" required SearchJava.NEW or SearchJava.OLD')
     if bit != SearchJava.ALLBIT and bit != 32 and bit != 64:
-        raise Exception('Error argument "bit" needs only SearchJava.ALLBIT or 32 (int) or 64 (int)')
+        raise Exception('Error argument "bit" required SearchJava.ALLBIT or 32 (int) or 64 (int)')
     
     for v in paths1:
         if v in paths2:
