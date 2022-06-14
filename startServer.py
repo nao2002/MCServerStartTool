@@ -1,5 +1,6 @@
 import json
 import subprocess
+import os
 import searchJava
 
 #サーバー実行
@@ -39,9 +40,13 @@ def startServer(saved_content):
     return returnText
 
 def search_path(ver, saved_content):
-    searchJava.search_path("C:\\Program Files*\\**\\bin\\java.exe")
+    paths = searchJava.search_path()
     json_open = open("data/java_path.json",'r',encoding="utf-8_sig")
     java_paths = json.load(json_open)
+    java_paths = searchJava.compound_javaLists(java_paths,paths)
+    os.chdir(os.path.dirname(os.path.abspath(__file__)))
+    json_write = open('data/java_path.json','w',encoding="utf-8_sig")
+    json.dump(java_paths, json_write, ensure_ascii=False, indent=4)
     if ver in java_paths:
         return check_bit(java_paths[ver]["path"],java_paths[ver]["bit"],saved_content)
 

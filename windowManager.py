@@ -8,6 +8,7 @@ import startServer
 import sys
 import os
 import searchJava
+from searchJava import SearchJava
 import webbrowser
 import resetData
 
@@ -316,14 +317,20 @@ def askScan(mode):
             javaFullScan("default")
 
 def javaFullScan(mode):
-    for d in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ':
-        if os.path.exists(f'{d}:'):
-            if mode == "default":
-                searchJava.search_path(f"{d}:\\Program Files*\\**\\bin\\java.exe")
-            else:
-                searchJava.search_path(f"{d}:\\**\\bin\\java.exe")
+    ret = {}
+    if mode == "default":
+        for d in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ':
+            if os.path.exists(f'{d}:'):
+                ret = searchJava.search_path()
+    else:
+        ret = searchJava.search_path(way=SearchJava.FULL)
+    os.chdir(os.path.dirname(os.path.abspath(__file__)))
     json_open = open("data/java_path.json",'r',encoding="utf-8_sig")
     java_paths = json.load(json_open)
+    java_paths = searchJava.compound_javaLists(java_paths,ret)
+    json_write = open('data/java_path.json','w',encoding="utf-8_sig")
+    json.dump(java_paths, json_write, ensure_ascii=False, indent=4)
+
     windows["listData"].delete(0, tk.END)
     for i in java_paths:
         windows["listData"].insert(tk.END, f"Java{i}." + java_paths[i]["detail"] + " - " + java_paths[i]["bit"] + "bit", java_paths[i]["path"], "")
@@ -331,11 +338,18 @@ def javaFullScan(mode):
 
 def select_java():
     out = selectFiles.selectCustomJava(saved_content["dirPath"])
+    os.chdir(os.path.dirname(os.path.abspath(__file__)))
     if out == "error":
         print("errored")
     else:
         json_open = open("data/java_path.json",'r',encoding="utf-8_sig")
         java_paths = json.load(json_open)
+        for v in out:
+            if v in java_paths:
+                java_paths[v] = out[v]
+            else:
+                java_paths[v] = {}
+                java_paths[v] = out[v]
         windows["listData"].delete(0, tk.END)
         for i in java_paths:
             windows["listData"].insert(tk.END, f"Java{i}." + java_paths[i]["detail"] + " - " + java_paths[i]["bit"] + "bit", java_paths[i]["path"], "")

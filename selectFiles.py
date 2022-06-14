@@ -33,5 +33,5 @@ def selectCustomJava(defaultDir):
     iFilePath = filedialog.askopenfilename(filetype = fTyp, initialdir = iFile)
     if iFilePath == "":
         return "error"
-    searchJava.change_java(iFilePath)
-    return "changed"
+    ret = searchJava.search_path(way=str(iFilePath))
+    return ret
