@@ -19,31 +19,6 @@ def startServer(saved_content):
             if v in java_paths:
                 returnText = check_bit(java_paths[v]["path"],java_paths[v]["bit"], saved_content)
                 return returnText
-        # if saved_content["mcVersion"] == "1.12.x-1.16.x" or saved_content["mcVersion"] == "1.11.x以前":
-        #     if "8" in java_paths:
-        #         returnText = check_bit(java_paths["8"]["path"],java_paths["8"]["bit"], saved_content)
-        #     else:
-        #         for v in java_paths:
-        #             if v in ["8","9","10","11","12","13","14","15"]:
-        #                 returnText = check_bit(java_paths[v]["path"],java_paths[v]["bit"],saved_content)
-        #         if returnText == "":
-        #             returnText = search_path("8", saved_content)
-        # elif saved_content["mcVersion"] == "1.17.x":
-        #     if "16" in java_paths:
-        #         returnText = check_bit(java_paths["16"]["path"],java_paths["16"]["bit"], saved_content)
-        #     elif "17" in java_paths:
-        #         returnText = check_bit(java_paths["17"]["path"],java_paths["17"]["bit"], saved_content)
-        #     elif "18" in java_paths:
-        #         returnText = check_bit(java_paths["17"]["path"],java_paths["17"]["bit"], saved_content)
-        #     else:
-        #         returnText = search_path("16", saved_content)
-        # elif saved_content["mcVersion"] == "1.18.x以降":
-        #     if "17" in java_paths:
-        #         returnText = check_bit(java_paths["17"]["path"],java_paths["17"]["bit"], saved_content)
-        #     elif "18" in java_paths:
-        #         returnText = check_bit(java_paths["17"]["path"],java_paths["17"]["bit"], saved_content)
-        #     else:
-        #         returnText = search_path("17", saved_content)
     else:
         print("error - path未設定")
         returnText = "サーバーを指定してください"
@@ -92,6 +67,9 @@ def use_command(javaPath, saved_content):
     if os.path.isfile(pathDir + "version.txt"):
         f = open(pathDir + 'version.txt', 'r', encoding='UTF-8')
         version = f.read()
+        if not isint(version) and not version != "Exception":
+            version, pid = checkServerVersion(javaPath, pathDir, path)
+            f.write(version)
         f.close()
     else:
         print("version.txtを作成")
@@ -100,11 +78,10 @@ def use_command(javaPath, saved_content):
         f = open(pathDir + 'version.txt', 'w', encoding='UTF-8')
         f.write(version)
         f.close()
-        while psutil.pid_exists(pid):
+    while psutil.pid_exists(pid):
             print(f"process: {psutil.pid_exists(pid)}")
             time.sleep(1)
             print(f"process: {psutil.pid_exists(pid)}")
-
 
     log4jON = "18"
     if int(version) == 17:
@@ -158,8 +135,24 @@ def checkServerVersion(javaPath, pathDir, path):
                 proc.stdin.write(b'stop')
                 proc.terminate()
                 break
+
+            if version == "" and ("Done" in str(line) or "done" in str(line)):
+                version = "Exception"
+                pid = proc.pid
+
+                proc.stdin.write(b'stop')
+                proc.terminate()
+                break
                 
         if not line and proc.poll() is not None:
             break
 
     return str(version), pid
+
+def isint(s):  # 整数値を表しているかどうかを判定
+    try:
+        int(s, 10)  # 文字列を実際にint関数で変換してみる
+    except ValueError:
+        return False
+    else:
+        return True
