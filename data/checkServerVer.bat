@@ -3,7 +3,7 @@
 rem 以下対応引数
 rem (checkServerVer.bat) javaパス サーバーディレクトリ サーバーファイル
 
-title Server
+title checking_version...
 
 set PATH="%~1";%PATH%
 

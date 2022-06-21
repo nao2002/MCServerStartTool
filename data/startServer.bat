@@ -24,7 +24,7 @@ copy /Y log4j2_112-116.xml "%~2" > nul
 
 cd /d "%~2"
 
-taskkill /pid %7 > nul
+taskkill /F /pid %~7 > nul
 
 java -Xms%4 -Xmx%4 %log4j%-jar "%~3"%~6
 
