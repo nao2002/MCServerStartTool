@@ -21,6 +21,7 @@ def startServer(saved_content):
             if v in java_paths:
                 returnText = check_bit(java_paths[v]["path"],java_paths[v]["bit"], saved_content)
                 return returnText
+        return "javaが見つかりませんでした\njavaをインストールするか、詳細設定画面から検出してください\njava17以上のインストールを推奨します"
     else:
         print("error - path未設定")
         returnText = "サーバーを指定してください"
@@ -106,7 +107,7 @@ def use_command(javaPath, saved_content):
     if saved_content["gui"] == "0":
         others = others + " nogui"
 
-    command = ['data\openStarter.bat',f"{javaPath}",f"{pathDir}",f"{path}",memory,log4jON,f"{others}"]
+    command = ['data\openStarter.bat',f"{javaPath}",f"{pathDir}",f"{path}",memory,log4jON,f"{others}",str(os.getpid())]
     cmdRun = subprocess.run(command, stdout = subprocess.PIPE)
     print(cmdRun)
     if cmdRun.returncode == 0:
