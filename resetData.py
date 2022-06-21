@@ -1,6 +1,8 @@
 import json
+import os
 
 def resetData():
+    os.chdir(os.path.dirname(os.path.abspath(__file__)))
     json_write = open("data/data.json",'w',encoding="utf-8_sig")
     content = {
         "path": "",

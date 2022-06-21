@@ -5,9 +5,11 @@ import re
 import psutil
 import time
 import searchJava
+import asyncio
 
 #サーバー実行
 def startServer(saved_content):
+    os.chdir(os.path.dirname(os.path.abspath(__file__)))
     returnText = ""
     if saved_content["path"] != "":
         json_open = open("data/java_path.json",'r',encoding="utf-8_sig")
@@ -26,6 +28,7 @@ def startServer(saved_content):
 
 def search_path():
     paths = searchJava.search_path()
+    os.chdir(os.path.dirname(os.path.abspath(__file__)))
     json_open = open("data/java_path.json",'r',encoding="utf-8_sig")
     java_paths = json.load(json_open)
     java_paths = searchJava.compound_javaLists(java_paths,paths)
@@ -67,24 +70,28 @@ def use_command(javaPath, saved_content):
     if os.path.isfile(pathDir + "version.txt"):
         f = open(pathDir + 'version.txt', 'r', encoding='UTF-8')
         version = f.read()
-        if not isint(version) and not version != "Exception":
-            version, pid = checkServerVersion(javaPath, pathDir, path)
+        print(version)
+        if not isint(version) and not version == "Exception":
+            version, pid = asyncio.run(asyncio.wait_for(checkServerVersion("data\checkServerVer.bat",[f"{javaPath}",f"{pathDir}",f"{path}"]),60))
             f.write(version)
         f.close()
     else:
         print("version.txtを作成")
-        version, pid = checkServerVersion(javaPath, pathDir, path)
+        version, pid = asyncio.run(asyncio.wait_for(checkServerVersion("data\checkServerVer.bat",[f"{javaPath}",f"{pathDir}",f"{path}"]),60))
         print(version)
         f = open(pathDir + 'version.txt', 'w', encoding='UTF-8')
         f.write(version)
         f.close()
-    while psutil.pid_exists(pid):
+    if pid != None:
+        while psutil.pid_exists(pid):
             print(f"process: {psutil.pid_exists(pid)}")
             time.sleep(1)
             print(f"process: {psutil.pid_exists(pid)}")
 
     log4jON = "18"
-    if int(version) == 17:
+    if version == "Exception":
+        log4jON = "0"
+    elif int(version) == 17:
         log4jON = "17"
     elif int(version) <= 16 and int(version) >= 12:
         log4jON = "16"
@@ -92,7 +99,6 @@ def use_command(javaPath, saved_content):
         log4jON = "11"
     if saved_content["log4j2"] == 0:
         log4jON = "0"
-
 
     print(pathDir)
 
@@ -108,16 +114,23 @@ def use_command(javaPath, saved_content):
     else:
         return "サーバーの実行中にエラーが発生しました\nサーバーファイルを指定し直してみてください"
 
-
-def checkServerVersion(javaPath, pathDir, path):
+async def checkServerVersion(command, args):
     version = ""
     pid = ""
 
     os.chdir(os.path.dirname(os.path.abspath(__file__)))
-    proc = subprocess.Popen(["data\checkServerVer.bat", f"{javaPath}",f"{pathDir}",f"{path}"], shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    proc = await asyncio.create_subprocess_exec(command, *args, stdin=asyncio.subprocess.PIPE, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.STDOUT)
 
     while True:
-        line = proc.stdout.readline()
+        try:
+            line =  await asyncio.wait_for(proc.stdout.readline(), 20)
+        except:
+            print("timeout")
+            version = "Exception"
+            pid = proc.pid
+
+            await proc.communicate(b'stop')
+            break
         if line:
             print(str(line))
             if re.match(".*\.[0-9]+\.[0-9]+", str(line)):
@@ -132,20 +145,15 @@ def checkServerVersion(javaPath, pathDir, path):
 
                 pid = proc.pid
 
-                proc.stdin.write(b'stop')
-                proc.terminate()
+                await proc.communicate(b'stop')
                 break
 
             if version == "" and ("Done" in str(line) or "done" in str(line)):
                 version = "Exception"
                 pid = proc.pid
 
-                proc.stdin.write(b'stop')
-                proc.terminate()
+                await proc.communicate(b'stop')
                 break
-                
-        if not line and proc.poll() is not None:
-            break
 
     return str(version), pid
 

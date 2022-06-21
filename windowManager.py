@@ -31,11 +31,11 @@ def mainWindow():
     # メインウィンドウ
     main_win.title("MC_Server_Starter")
     if saved_content["x"] <= -1.0:
-        main_win.geometry("520x150")
+        main_win.geometry("520x130")
     else:
         x = saved_content["x"]
         y = saved_content["y"]
-        main_win.geometry(f"520x150+{x}+{y}")
+        main_win.geometry(f"520x130+{x}+{y}")
     main_win.resizable(width=False, height=False)
 
     # メインフレーム
@@ -49,34 +49,17 @@ def mainWindow():
     windows["pathVar"] = pathVar
     folder_btn = ttk.Button(main_frm, text="参照", command=select_path)
 
-    #マイクラバージョン
-    version_label = ttk.Label(main_frm, text="マイクラのバージョン")
-    versionVar = StringVar(value=str(saved_content["mcVersion"]))
-    version_comb = ttk.Combobox(main_frm, textvariable=versionVar, values=["1.18.x以降","1.17.x","1.12.x-1.16.x","1.11.x以前"], width=12, state="readonly")
-    version_comb.bind('<<ComboboxSelected>>', versionComboSelect)
-    windows["versionComb"] = version_comb
-
     #実行ボタン
     app_btn = ttk.Button(main_frm, text="起動", command=start)
 
     detail_btn = ttk.Button(main_frm, text="詳細設定", command=toDetailWindow)
 
     # ウィジェットの配置
-    #folder_label.grid(column=0, row=0, pady=10)
-    #folder_box.grid(column=1, row=0, sticky=tk.EW, padx=5, columnspan=3)
-    #folder_btn.grid(column=4, row=0)
-    #version_label.grid(column=0, row=1)
-    #version_comb.grid(column=1, row=1, sticky=tk.W, padx=5)
-    #app_btn.grid(column=1, row=3, pady=15, sticky=tk.W)
-    #detail_btn.grid(column=3,row=3, sticky=tk.E)
-
-    folder_label.place(x=5, y=10)
-    folder_box.place(x=85, y=10, width=340, height=23)
-    folder_btn.place(x=425, y=9, height=25)
-    version_label.place(x=126, y=55)
-    version_comb.place(x=235, y=54)
-    app_btn.place(x=85,y=95, width=100, height=25)
-    detail_btn.place(x=315,y=95,width=110,height=25)
+    folder_label.place(x=5, y=15)
+    folder_box.place(x=85, y=15, width=340, height=23)
+    folder_btn.place(x=425, y=14, height=25)
+    app_btn.place(x=85,y=80, width=100, height=25)
+    detail_btn.place(x=315,y=80,width=110,height=25)
 
     # 配置設定
     main_win.columnconfigure(0, weight=1)
