@@ -12,6 +12,7 @@ def resetData():
         "memoryUnit": "MB",
         "gui": "1",
         "log4j2": "1",
+        "vCheck": "1",
         "x": -1.0,
         "y": -1.0
     }

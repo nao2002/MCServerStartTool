@@ -77,7 +77,8 @@ def start():
     print(errorMessage)
     if errorMessage != "":
         windows["now"].wm_state('normal')
-        tk.messagebox.showwarning("エラーが発生しました", errorMessage)
+        if errorMessage != "cancel":
+            tk.messagebox.showwarning("エラーが発生しました", errorMessage)
 
 def select_path():
     path = selectFiles.openFiledialog(saved_content["dirPath"],saved_content["path"])
@@ -102,7 +103,7 @@ def detailWindow():
     detail_win.title("詳細設定")
     x = saved_content["x"]
     y = saved_content["y"]
-    detail_win.geometry(f"420x410+{x}+{y}")
+    detail_win.geometry(f"420x445+{x}+{y}")
     detail_win.resizable(width=False, height=False)
 
     # メインフレーム
@@ -145,9 +146,18 @@ def detailWindow():
     variable=log4j2_var, onvalue='1', offvalue='0',
     command=partial(toggleButtonSave, log4j2_var, "log4j2"))
 
+    #バージョン自動検知
+    vCheck_var = StringVar(value=str(saved_content["vCheck"]))
+    vCheck_toggle = ttk.Checkbutton(
+    main_frm, padding=(10), text='バージョンの自動検知　*起動にかかる時間が増えることがあります',
+    variable=vCheck_var, onvalue='1', offvalue='0',
+    command=partial(toggleButtonSave, vCheck_var, "vCheck"))
+
+    #リセット
     reset_label = ttk.Label(main_frm, text="初期状態に戻す")
     reset_btn = ttk.Button(main_frm, text="リセット", command=resetAsk)
 
+    #支援
     support_label = ttk.Label(main_frm, text="開発者を支援する")
     support_btn = ttk.Button(main_frm, text="支援する", command=partial(openBrowser,'https://paypal.me/lyomiproj/'))
 
@@ -177,11 +187,12 @@ def detailWindow():
     memory_comb.place(x=300, y=135, width=70)
     gui_toggle.place(x=13, y=170)
     log4j2_toggle.place(x=13, y=205)
-    reset_label.place(x=20, y=250)
-    reset_btn.place(x=270, y=250, width=100, height=25)
-    support_label.place(x=20, y=300)
-    support_btn.place(x=270, y=300, width=100, height=25)
-    back_btn.place(x=150, y=360, width=100)
+    vCheck_toggle.place(x=13,y=240)
+    reset_label.place(x=20, y=285)
+    reset_btn.place(x=270, y=285, width=100, height=25)
+    support_label.place(x=20, y=335)
+    support_btn.place(x=270, y=335, width=100, height=25)
+    back_btn.place(x=150, y=395, width=100)
 
     # 配置設定
     detail_win.columnconfigure(0, weight=1)
