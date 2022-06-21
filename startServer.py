@@ -2,10 +2,12 @@ import json
 import subprocess
 import os
 import re
+from numpy import save
 import psutil
 import time
 import searchJava
 import asyncio
+from tkinter import simpledialog
 
 #サーバー実行
 def startServer(saved_content):
@@ -14,8 +16,10 @@ def startServer(saved_content):
     if saved_content["path"] != "":
         json_open = open("data/java_path.json",'r',encoding="utf-8_sig")
         java_paths = json.load(json_open)
+        json_open.close()
         if not "17" in java_paths and not "18" in java_paths:
             search_path()
+            json_open = open("data/java_path.json","r",encoding="utf-8_sig")
             java_paths = json.load(json_open)
         for v in ["18","17","16","15","14","13","12","11","10","9","8"]:
             if v in java_paths:
@@ -71,23 +75,40 @@ def use_command(javaPath, saved_content):
     if os.path.isfile(pathDir + "version.txt"):
         f = open(pathDir + 'version.txt', 'r', encoding='UTF-8')
         version = f.read()
+        f.close()
         print(version)
         if not isint(version) and not version == "Exception":
-            version, pid = asyncio.run(asyncio.wait_for(checkServerVersion("data\checkServerVer.bat",[f"{javaPath}",f"{pathDir}",f"{path}"]),60))
-            f.write(version)
-        f.close()
+            if saved_content["vCheck"] == "1":
+                f = open(pathDir + 'version.txt', 'w', encoding='UTF-8')
+                version, pid = asyncio.run(asyncio.wait_for(checkServerVersion("data\checkServerVer.bat",[f"{javaPath}",f"{pathDir}",f"{path}"]),60))
+                f.write(version)
+                f.close()
+            else:
+                version = ""
     else:
-        print("version.txtを作成")
-        version, pid = asyncio.run(asyncio.wait_for(checkServerVersion("data\checkServerVer.bat",[f"{javaPath}",f"{pathDir}",f"{path}"]),60))
-        print(version)
-        f = open(pathDir + 'version.txt', 'w', encoding='UTF-8')
-        f.write(version)
-        f.close()
+        if saved_content["vCheck"] == "1":
+            print("version.txtを作成")
+            version, pid = asyncio.run(asyncio.wait_for(checkServerVersion("data\checkServerVer.bat",[f"{javaPath}",f"{pathDir}",f"{path}"]),60))
+            print(version)
+            f = open(pathDir + 'version.txt', 'w', encoding='UTF-8')
+            f.write(version)
+            f.close()
+        else:
+            version = ""
     if pid != None:
         while psutil.pid_exists(pid):
             print(f"process: {psutil.pid_exists(pid)}")
             time.sleep(1)
             print(f"process: {psutil.pid_exists(pid)}")
+
+    if version == "Exception" or version == "":
+        version = askVersion(vCheck=saved_content["vCheck"])
+        if version == "cancel":
+            return "cancel"
+        else:
+            f = open(pathDir + "version.txt","w",encoding="UTF-8")
+            f.write(str(version))
+            f.close()
 
     log4jON = "18"
     if version == "Exception":
@@ -100,8 +121,6 @@ def use_command(javaPath, saved_content):
         log4jON = "11"
     if saved_content["log4j2"] == 0:
         log4jON = "0"
-
-    print(pathDir)
 
     others = ""
     if saved_content["gui"] == "0":
@@ -165,3 +184,24 @@ def isint(s):  # 整数値を表しているかどうかを判定
         return False
     else:
         return True
+
+def askVersion(second = False, vCheck = "1"):
+    if second == False:
+        txt = "バージョンの自動検知に失敗しました\nバージョンを半角数字で入力してください\n*1.18.1 -> 18 のみを入力"
+        if vCheck != "1":
+            txt = "バージョンを半角数字で入力してください\n*1.18.1 -> 18 のみを入力"
+        ret = simpledialog.askstring("手動設定", txt)
+        if ret == None:
+            return "cancel"
+        elif isint(ret):
+            return ret
+        else:
+            return askVersion(second=True)
+    elif second == True:
+        ret = simpledialog.askstring("エラー", "バージョンを半角数字のみで入力してください\n*1.18.1 -> 18 のみを入力")
+        if ret == None:
+            return "cancel"
+        elif isint(ret):
+            return ret
+        else:
+            return askVersion(second=True)
