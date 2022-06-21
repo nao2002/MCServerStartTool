@@ -284,10 +284,6 @@ def toMainWindow():
     windows["now"].destroy()
     mainWindow()
 
-def versionComboSelect(event):
-    saved_content["mcVersion"] = windows["versionComb"].get()
-    save_json()
-
 def memoryComboSelect(event):
     saved_content["memoryUnit"] = windows["memoryComb"].get()
     save_json()
@@ -318,7 +314,7 @@ def javaFullScan(mode):
                 ret = searchJava.search_path()
     else:
         ret = searchJava.search_path(way=SearchJava.FULL)
-    os.chdir(os.path.dirname(os.path.abspath(__file__)))
+    os.chdir(os.path.dirname(sys.executable))
     json_open = open("data/java_path.json",'r',encoding="utf-8_sig")
     java_paths = json.load(json_open)
     java_paths = searchJava.compound_javaLists(java_paths,ret)
@@ -332,7 +328,7 @@ def javaFullScan(mode):
 
 def select_java():
     out = selectFiles.selectCustomJava(saved_content["dirPath"])
-    os.chdir(os.path.dirname(os.path.abspath(__file__)))
+    os.chdir(os.path.dirname(sys.executable))
     if out == "error":
         print("errored")
     else:

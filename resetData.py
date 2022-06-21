@@ -1,13 +1,13 @@
 import json
 import os
+import sys
 
 def resetData():
-    os.chdir(os.path.dirname(os.path.abspath(__file__)))
+    os.chdir(os.path.dirname(sys.executable))
     json_write = open("data/data.json",'w',encoding="utf-8_sig")
     content = {
         "path": "",
         "dirPath": "",
-        "mcVersion": "1.18.x以降",
         "memory": "2048",
         "memoryUnit": "MB",
         "gui": "1",

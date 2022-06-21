@@ -1,6 +1,7 @@
 import json
 import subprocess
 import os
+import sys
 import re
 import psutil
 import time
@@ -10,7 +11,7 @@ from tkinter import simpledialog
 
 #サーバー実行
 def startServer(saved_content):
-    os.chdir(os.path.dirname(os.path.abspath(__file__)))
+    os.chdir(os.path.dirname(sys.executable))
     returnText = ""
     if saved_content["path"] != "":
         json_open = open("data/java_path.json",'r',encoding="utf-8_sig")
@@ -32,11 +33,11 @@ def startServer(saved_content):
 
 def search_path():
     paths = searchJava.search_path()
-    os.chdir(os.path.dirname(os.path.abspath(__file__)))
+    os.chdir(os.path.dirname(sys.executable))
     json_open = open("data/java_path.json",'r',encoding="utf-8_sig")
     java_paths = json.load(json_open)
     java_paths = searchJava.compound_javaLists(java_paths,paths)
-    os.chdir(os.path.dirname(os.path.abspath(__file__)))
+    os.chdir(os.path.dirname(sys.executable))
     json_write = open('data/java_path.json','w',encoding="utf-8_sig")
     json.dump(java_paths, json_write, ensure_ascii=False, indent=4)
 
@@ -137,7 +138,7 @@ async def checkServerVersion(command, args):
     version = ""
     pid = ""
 
-    os.chdir(os.path.dirname(os.path.abspath(__file__)))
+    os.chdir(os.path.dirname(sys.executable))
     proc = await asyncio.create_subprocess_exec(command, *args, stdin=asyncio.subprocess.PIPE, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.STDOUT)
 
     while True:
