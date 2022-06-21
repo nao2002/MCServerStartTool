@@ -72,6 +72,7 @@ def use_command(javaPath, saved_content):
 
     version = ""
     pid = None
+    error = None
     if os.path.isfile(pathDir + "version.txt"):
         f = open(pathDir + 'version.txt', 'r', encoding='UTF-8')
         version = f.read()
@@ -79,8 +80,11 @@ def use_command(javaPath, saved_content):
         print(version)
         if not isint(version) and not version == "Exception":
             if saved_content["vCheck"] == "1":
+                version, pid, error = asyncio.run(asyncio.wait_for(checkServerVersion("data\checkServerVer.bat",[f"{javaPath}",f"{pathDir}",f"{path}"]),60))
+                if error != None:
+                    if error == "java_error":
+                        return "サーバーの起動に失敗しました\n必要なバージョンのjavaが存在しない可能性が高いです\njava17以上であれば全てのバージョンを起動できるため\njava17以上のインストールを推奨しております\n\n既にインストール済みの場合は詳細設定のjava設定から検出を試してください"
                 f = open(pathDir + 'version.txt', 'w', encoding='UTF-8')
-                version, pid = asyncio.run(asyncio.wait_for(checkServerVersion("data\checkServerVer.bat",[f"{javaPath}",f"{pathDir}",f"{path}"]),60))
                 f.write(version)
                 f.close()
             else:
@@ -88,7 +92,10 @@ def use_command(javaPath, saved_content):
     else:
         if saved_content["vCheck"] == "1":
             print("version.txtを作成")
-            version, pid = asyncio.run(asyncio.wait_for(checkServerVersion("data\checkServerVer.bat",[f"{javaPath}",f"{pathDir}",f"{path}"]),60))
+            version, pid, error = asyncio.run(asyncio.wait_for(checkServerVersion("data\checkServerVer.bat",[f"{javaPath}",f"{pathDir}",f"{path}"]),60))
+            if error != None:
+                if error == "java_error":
+                    return "サーバーの起動に失敗しました\n必要なバージョンのjavaが存在しない可能性が高いです\njava17以上であれば全てのバージョンを起動できるため\njava17以上のインストールを推奨しております\n\n既にインストール済みの場合は詳細設定のjava設定から検出を試してください"
             print(version)
             f = open(pathDir + 'version.txt', 'w', encoding='UTF-8')
             f.write(version)
@@ -137,6 +144,7 @@ def use_command(javaPath, saved_content):
 async def checkServerVersion(command, args):
     version = ""
     pid = ""
+    error = None
 
     os.chdir(os.path.dirname(sys.executable))
     proc = await asyncio.create_subprocess_exec(command, *args, stdin=asyncio.subprocess.PIPE, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.STDOUT)
@@ -150,6 +158,7 @@ async def checkServerVersion(command, args):
             pid = proc.pid
 
             await proc.communicate(b'stop')
+            proc.terminate()
             break
         if line:
             print(str(line))
@@ -166,6 +175,7 @@ async def checkServerVersion(command, args):
                 pid = proc.pid
 
                 await proc.communicate(b'stop')
+                proc.terminate()
                 break
 
             if version == "" and ("Done" in str(line) or "done" in str(line)):
@@ -173,9 +183,18 @@ async def checkServerVersion(command, args):
                 pid = proc.pid
 
                 await proc.communicate(b'stop')
+                proc.terminate()
                 break
 
-    return str(version), pid
+            if re.match("UnsupportedClassVersion",str(line)):
+                version = ""
+                pid = proc.pid
+                error = "java_error"
+
+                proc.terminate()
+                break
+
+    return str(version), pid, error
 
 def isint(s):  # 整数値を表しているかどうかを判定
     try:
