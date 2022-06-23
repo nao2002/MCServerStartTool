@@ -1,9 +1,9 @@
 import json
 import os
-import sys
+from findDataFile import find_data_file as finddata
 
 def resetData():
-    os.chdir(os.path.dirname(sys.executable))
+    os.chdir(finddata())
     json_write = open("data/data.json",'w',encoding="utf-8_sig")
     content = {
         "path": "",

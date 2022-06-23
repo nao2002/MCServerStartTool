@@ -1,17 +1,17 @@
 import json
 import subprocess
 import os
-import sys
 import re
 import psutil
 import time
 import searchJava
+from findDataFile import find_data_file as finddata
 import asyncio
 from tkinter import simpledialog
 
 #サーバー実行
 def startServer(saved_content):
-    os.chdir(os.path.dirname(sys.executable))
+    os.chdir(finddata())
     returnText = ""
     if saved_content["path"] != "":
         json_open = open("data/java_path.json",'r',encoding="utf-8_sig")
@@ -33,11 +33,11 @@ def startServer(saved_content):
 
 def search_path():
     paths = searchJava.search_path()
-    os.chdir(os.path.dirname(sys.executable))
+    os.chdir(finddata())
     json_open = open("data/java_path.json",'r',encoding="utf-8_sig")
     java_paths = json.load(json_open)
     java_paths = searchJava.compound_javaLists(java_paths,paths)
-    os.chdir(os.path.dirname(sys.executable))
+    os.chdir(finddata())
     json_write = open('data/java_path.json','w',encoding="utf-8_sig")
     json.dump(java_paths, json_write, ensure_ascii=False, indent=4)
 
@@ -83,7 +83,9 @@ def use_command(javaPath, saved_content):
                 version, pid, error = asyncio.run(asyncio.wait_for(checkServerVersion("data\checkServerVer.bat",[f"{javaPath}",f"{pathDir}",f"{path}"]),60))
                 if error != None:
                     if error == "java_error":
-                        return "サーバーの起動に失敗しました\n必要なバージョンのjavaが存在しない可能性が高いです\njava17以上であれば全てのバージョンを起動できるため\njava17以上のインストールを推奨しております\n\n既にインストール済みの場合は詳細設定のjava設定から検出を試してください"
+                        return "サーバーの起動に失敗しました\n\n必要なバージョンのjavaが存在しない可能性が高いです\njava17以上であれば全てのバージョンを起動できるため\njava17以上のインストールを推奨しております\n\n既にインストール済みの場合は詳細設定のjava設定から検出を試してください"
+                    elif error == "error":
+                        return "サーバーの起動に失敗しました\n\n何らかのエラーが発生しました"
                 f = open(pathDir + 'version.txt', 'w', encoding='UTF-8')
                 f.write(version)
                 f.close()
@@ -95,18 +97,24 @@ def use_command(javaPath, saved_content):
             version, pid, error = asyncio.run(asyncio.wait_for(checkServerVersion("data\checkServerVer.bat",[f"{javaPath}",f"{pathDir}",f"{path}"]),60))
             if error != None:
                 if error == "java_error":
-                    return "サーバーの起動に失敗しました\n必要なバージョンのjavaが存在しない可能性が高いです\njava17以上であれば全てのバージョンを起動できるため\njava17以上のインストールを推奨しております\n\n既にインストール済みの場合は詳細設定のjava設定から検出を試してください"
+                    return "サーバーの起動に失敗しました\n\n必要なバージョンのjavaが存在しない可能性が高いです\njava17以上であれば全てのバージョンを起動できるため\njava17以上のインストールを推奨しております\n\n既にインストール済みの場合は詳細設定のjava設定から検出を試してください"
+                elif error == "error":
+                    return "サーバーの起動に失敗しました\n\n何らかのエラーが発生しました"
             print(version)
             f = open(pathDir + 'version.txt', 'w', encoding='UTF-8')
             f.write(version)
             f.close()
         else:
             version = ""
+
     if pid != None:
         while psutil.pid_exists(pid):
             print(f"process: {psutil.pid_exists(pid)}")
             time.sleep(1)
             print(f"process: {psutil.pid_exists(pid)}")
+
+    if checkEULA(pathDir) == False:
+        return "eula.txtに同意していないため起動できません\n規約に同意する場合\neula=false を eula=true\nに書き換え再実行してください"
 
     if version == "Exception" or version == "":
         version = askVersion(vCheck=saved_content["vCheck"])
@@ -143,13 +151,17 @@ def use_command(javaPath, saved_content):
 
 async def checkServerVersion(command, args):
     version = ""
-    pid = ""
+    pid = None
     error = None
 
-    os.chdir(os.path.dirname(sys.executable))
+    os.chdir(finddata())
     proc = await asyncio.create_subprocess_exec(command, *args, stdin=asyncio.subprocess.PIPE, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.STDOUT)
 
     while True:
+        if proc.returncode != None:
+            error = "error"
+            break
+            
         try:
             line =  await asyncio.wait_for(proc.stdout.readline(), 20)
         except:
@@ -158,24 +170,23 @@ async def checkServerVersion(command, args):
             pid = proc.pid
 
             await proc.communicate(b'stop')
-            proc.terminate()
             break
         if line:
             print(str(line))
-            if re.match(".*\.[0-9]+\.[0-9]+", str(line)):
-                version = re.match(".*\.[0-9]+\.[0-9]+", str(line)).group()
+            if re.search("[0-9]\.[0-9]+(\.[0-9]+)?", str(line)):
+                version = re.search("[0-9]\.[0-9]+(\.[0-9]+)?", str(line)).group()
 
-                reverse = "".join(reversed(str(version)))
-                target = reverse.find(".")
-                removed = reverse[target+1:]
-                target = removed.find(".")
-                removed = removed[:target]
+                print(f"version:{version}")
+                target = version.find(".")
+                removed = "".join(reversed(version[target+1:]))
+                if version.count(".") != 1:
+                    target = removed.find(".")
+                    removed = removed[target+1:]
                 version = "".join(reversed(removed))
 
                 pid = proc.pid
 
                 await proc.communicate(b'stop')
-                proc.terminate()
                 break
 
             if version == "" and ("Done" in str(line) or "done" in str(line)):
@@ -183,15 +194,13 @@ async def checkServerVersion(command, args):
                 pid = proc.pid
 
                 await proc.communicate(b'stop')
-                proc.terminate()
                 break
 
-            if re.match("UnsupportedClassVersion",str(line)):
+            if "UnsupportedClassVersion" in str(line):
                 version = ""
                 pid = proc.pid
                 error = "java_error"
 
-                proc.terminate()
                 break
 
     return str(version), pid, error
@@ -224,3 +233,20 @@ def askVersion(second = False, vCheck = "1"):
             return ret
         else:
             return askVersion(second=True)
+
+def checkEULA(pathDir):
+    if os.path.exists(pathDir+"eula.txt"):
+        os.chdir(pathDir)
+        f = open('eula.txt', 'r', encoding='UTF-8')
+        eula = f.read()
+        eula = eula.lower()
+        f.close()
+        if "eula=true" in eula:
+            os.chdir(finddata())
+            return True
+        else:
+            os.chdir(finddata())
+            return False
+    else:
+        os.chdir(finddata())
+        return False

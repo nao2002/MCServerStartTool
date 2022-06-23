@@ -1,12 +1,13 @@
 import os
 from tkinter import *
 from tkinter import filedialog
+from findDataFile import find_data_file as finddata
 import searchJava
 
 def openFiledialog(defaultDir, currentPath):
     print("openFile")
     fTyp = [("jar File", ".jar")]
-    iFile = os.path.abspath(os.path.dirname(__file__))
+    iFile = os.path.abspath(finddata())
     if not defaultDir == "":
         iFile = defaultDir
     iFilePath = filedialog.askopenfilename(filetype = fTyp, initialdir = iFile)
@@ -16,7 +17,7 @@ def openFiledialog(defaultDir, currentPath):
 
 def openDirdialog(defaultDir):
     print("openDir")
-    iDir = os.path.abspath(os.path.dirname(__file__))
+    iDir = os.path.abspath(finddata())
     if not defaultDir == "":
         iDir = defaultDir
     iDirPath = filedialog.askdirectory(initialdir = iDir)
@@ -27,7 +28,7 @@ def openDirdialog(defaultDir):
 def selectCustomJava(defaultDir):
     print("selectJava")
     fTyp = [("java file", "java.exe")]
-    iFile = os.path.abspath(os.path.dirname(__file__))
+    iFile = os.path.abspath(finddata())
     if not defaultDir == "":
         iFile = defaultDir
     iFilePath = filedialog.askopenfilename(filetype = fTyp, initialdir = iFile)

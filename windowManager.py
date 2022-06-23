@@ -9,6 +9,7 @@ import sys
 import os
 import searchJava
 from searchJava import SearchJava
+from findDataFile import find_data_file as finddata
 import webbrowser
 import resetData
 
@@ -314,7 +315,7 @@ def javaFullScan(mode):
                 ret = searchJava.search_path()
     else:
         ret = searchJava.search_path(way=SearchJava.FULL)
-    os.chdir(os.path.dirname(sys.executable))
+    os.chdir(finddata())
     json_open = open("data/java_path.json",'r',encoding="utf-8_sig")
     java_paths = json.load(json_open)
     java_paths = searchJava.compound_javaLists(java_paths,ret)
@@ -328,7 +329,7 @@ def javaFullScan(mode):
 
 def select_java():
     out = selectFiles.selectCustomJava(saved_content["dirPath"])
-    os.chdir(os.path.dirname(sys.executable))
+    os.chdir(finddata())
     if out == "error":
         print("errored")
     else:
