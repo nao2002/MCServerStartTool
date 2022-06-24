@@ -173,8 +173,8 @@ async def checkServerVersion(command, args):
             break
         if line:
             print(str(line))
-            if re.search("[0-9]\.[0-9]+(\.[0-9]+)?", str(line)):
-                version = re.search("[0-9]\.[0-9]+(\.[0-9]+)?", str(line)).group()
+            if re.search("1\.[1-9][0-9]?(\.[0-9]+)?", str(line)):
+                version = re.search("1\.[1-9][0-9]?(\.[0-9]+)?", str(line)).group()
 
                 print(f"version:{version}")
                 target = version.find(".")
