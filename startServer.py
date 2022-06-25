@@ -113,9 +113,6 @@ def use_command(javaPath, saved_content):
             time.sleep(1)
             print(f"process: {psutil.pid_exists(pid)}")
 
-    if checkEULA(pathDir) == False:
-        return "eula.txtに同意していないため起動できません\n規約に同意する場合\neula=false を eula=true\nに書き換え再実行してください"
-
     if version == "Exception" or version == "":
         version = askVersion(vCheck=saved_content["vCheck"])
         if version == "cancel":
@@ -124,6 +121,9 @@ def use_command(javaPath, saved_content):
             f = open(pathDir + "version.txt","w",encoding="UTF-8")
             f.write(str(version))
             f.close()
+        
+    if checkEULA(pathDir) == False and int(version) >= 8:
+        return "サーバーの起動に失敗しました\n\neula.txtに同意してください\n規約に同意する場合\neula=false を eula=true\nに書き換え再実行してください"
 
     log4jON = "18"
     if version == "Exception":
