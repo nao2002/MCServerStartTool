@@ -10,7 +10,7 @@ import asyncio
 from tkinter import simpledialog
 
 #サーバー実行
-def startServer(saved_content):
+def startServer(saved_content, timeout=None):
     os.chdir(finddata())
     returnText = ""
     if saved_content["path"] != "":
@@ -23,7 +23,7 @@ def startServer(saved_content):
             java_paths = json.load(json_open)
         for v in ["18","17","16","15","14","13","12","11","10","9","8"]:
             if v in java_paths:
-                returnText = check_bit(java_paths[v]["path"],java_paths[v]["bit"], saved_content)
+                returnText = check_bit(java_paths[v]["path"],java_paths[v]["bit"], saved_content,timeout)
                 return returnText
         return "javaが見つかりませんでした\njavaをインストールするか、詳細設定画面から検出してください\njava17以上のインストールを推奨します"
     else:
@@ -41,10 +41,10 @@ def search_path():
     json_write = open('data/java_path.json','w',encoding="utf-8_sig")
     json.dump(java_paths, json_write, ensure_ascii=False, indent=4)
 
-def check_bit(javaPath, bit, saved_content):
+def check_bit(javaPath, bit, saved_content, timeout):
     print("cmd: " + javaPath)
     if bit == "64":
-            return use_command(javaPath,saved_content)
+            return use_command(javaPath,saved_content,timeout)
     else:
         if int(saved_content["memory"]) > 4096:
             print("memory error : 32bit java cannot use over 4gb")
@@ -53,9 +53,9 @@ def check_bit(javaPath, bit, saved_content):
             print("memory error : 32bit java cannot use over 4gb")
             return "メモリ割り当てエラー\n32bitJavaに4GB以上を割り当てられません"
         else:
-            return use_command(javaPath,saved_content)
+            return use_command(javaPath,saved_content,timeout)
             
-def use_command(javaPath, saved_content):
+def use_command(javaPath, saved_content, timeout):
 
     path = saved_content["path"]
     reverse = "".join(reversed(path))
@@ -73,7 +73,7 @@ def use_command(javaPath, saved_content):
     version = ""
     pid = None
     error = None
-    if os.path.isfile(pathDir + "version.txt"):
+    if os.path.isfile(pathDir + "version.txt") and timeout == None:
         f = open(pathDir + 'version.txt', 'r', encoding='UTF-8')
         version = f.read()
         f.close()
@@ -92,26 +92,27 @@ def use_command(javaPath, saved_content):
             else:
                 version = ""
     else:
-        if saved_content["vCheck"] == "1":
+        if saved_content["vCheck"] == "1" or not timeout == None:
             print("version.txtを作成")
-            version, pid, error = asyncio.run(asyncio.wait_for(checkServerVersion("data\checkServerVer.bat",[f"{javaPath}",f"{pathDir}",f"{path}"]),60))
+            if timeout == None:
+                version, pid, error = asyncio.run(asyncio.wait_for(checkServerVersion("data\checkServerVer.bat",[f"{javaPath}",f"{pathDir}",f"{path}"]),60))
+            else:
+                version, pid, error = asyncio.run(asyncio.wait_for(checkServerVersion("data\checkServerVer.bat",[f"{javaPath}",f"{pathDir}",f"{path}"],errorCheck=True),timeout))
             if error != None:
                 if error == "java_error":
                     return "サーバーの起動に失敗しました\n\n必要なバージョンのjavaが存在しない可能性が高いです\njava17以上であれば全てのバージョンを起動できるため\njava17以上のインストールを推奨しております\n\n既にインストール済みの場合は詳細設定のjava設定から検出を試してください"
                 elif error == "error":
                     return "サーバーの起動に失敗しました\n\n何らかのエラーが発生しました"
             print(version)
-            f = open(pathDir + 'version.txt', 'w', encoding='UTF-8')
-            f.write(version)
-            f.close()
+            if timeout == None:
+                f = open(pathDir + 'version.txt', 'w', encoding='UTF-8')
+                f.write(version)
+                f.close()
         else:
             version = ""
 
-    if pid != None:
-        while psutil.pid_exists(pid):
-            print(f"process: {psutil.pid_exists(pid)}")
-            time.sleep(1)
-            print(f"process: {psutil.pid_exists(pid)}")
+    if timeout != None:
+        return "エラーは検出されませんでした"
 
     if version == "Exception" or version == "":
         version = askVersion(vCheck=saved_content["vCheck"])
@@ -141,6 +142,12 @@ def use_command(javaPath, saved_content):
     if saved_content["gui"] == "0":
         others = others + " nogui"
 
+    if pid != None:
+        while psutil.pid_exists(pid):
+            print(f"process: {psutil.pid_exists(pid)}")
+            time.sleep(1)
+            print(f"process: {psutil.pid_exists(pid)}")
+
     command = ['data\openStarter.bat',f"{javaPath}",f"{pathDir}",f"{path}",memory,log4jON,f"{others}",str(os.getpid())]
     cmdRun = subprocess.run(command, stdout = subprocess.PIPE)
     print(cmdRun)
@@ -149,7 +156,7 @@ def use_command(javaPath, saved_content):
     else:
         return "サーバーの実行中にエラーが発生しました\nサーバーファイルを指定し直してみてください"
 
-async def checkServerVersion(command, args):
+async def checkServerVersion(command, args, errorCheck=False):
     version = ""
     pid = None
     error = None
@@ -169,11 +176,11 @@ async def checkServerVersion(command, args):
             version = "Exception"
             pid = proc.pid
 
-            await proc.communicate(b'stop')
+            proc.kill()
             break
         if line:
             print(str(line))
-            if re.search("1\.[1-9][0-9]?(\.[0-9]+)?", str(line)):
+            if re.search("1\.[1-9][0-9]?(\.[0-9]+)?", str(line)) and not errorCheck:
                 version = re.search("1\.[1-9][0-9]?(\.[0-9]+)?", str(line)).group()
 
                 print(f"version:{version}")

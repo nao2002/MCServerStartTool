@@ -154,6 +154,10 @@ def detailWindow():
     variable=vCheck_var, onvalue='1', offvalue='0',
     command=partial(toggleButtonSave, vCheck_var, "vCheck"))
 
+    #サーバーエラー確認
+    errorCheck_label = ttk.Label(main_frm, text="サーバーのエラーチェックをする")
+    errorCheck_btn = ttk.Button(main_frm, text="実行",command=errorCheck)
+
     #リセット
     reset_label = ttk.Label(main_frm, text="初期状態に戻す")
     reset_btn = ttk.Button(main_frm, text="リセット", command=resetAsk)
@@ -189,10 +193,14 @@ def detailWindow():
     gui_toggle.place(x=13, y=170)
     log4j2_toggle.place(x=13, y=205)
     vCheck_toggle.place(x=13,y=240)
-    reset_label.place(x=20, y=285)
-    reset_btn.place(x=270, y=285, width=100, height=25)
-    support_label.place(x=20, y=335)
-    support_btn.place(x=270, y=335, width=100, height=25)
+    #reset_label.place(x=20, y=285)
+    #reset_btn.place(x=270, y=285, width=100, height=25)
+    #support_label.place(x=20, y=335)
+    #support_btn.place(x=270, y=335, width=100, height=25)
+    errorCheck_label.place(x=20, y=285)
+    errorCheck_btn.place(x=270, y=285, width=100, height=25)
+    reset_label.place(x=20, y=335)
+    reset_btn.place(x=270, y=335, width=100, height=25)
     back_btn.place(x=150, y=395, width=100)
 
     # 配置設定
@@ -204,6 +212,27 @@ def detailWindow():
     windows["frm"] = main_frm
     detail_win.protocol("WM_DELETE_WINDOW", click_close)
     detail_win.mainloop()
+
+def errorCheck():
+    path = selectFiles.openFiledialog(saved_content["dirPath"],saved_content["path"])
+    ret = tk.simpledialog.askstring("時間設定", "起動にかける最長時間(秒)を入力してください\nこの秒数を超えるとタイムアウトします")
+    if ret == None:
+        return
+    elif startServer.isint(ret):
+        curPath = saved_content["path"]
+        saved_content["path"] = path
+        save_json()
+        windows["now"].wm_state('iconic')
+        errorMessage = startServer.startServer(saved_content, int(ret))
+        saved_content["path"] = curPath
+        save_json()
+        windows["now"].wm_state('normal')
+        if errorMessage == "":
+            errorMessage == "エラーは検出されませんでした"
+        tk.messagebox.showinfo("検出結果", errorMessage)
+    else:
+        tk.messagebox.showwarning("エラーが発生しました", "半角数字のみで指定してください")
+        return
 
 def toJavaWindow():
     global windows
