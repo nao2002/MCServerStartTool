@@ -2,30 +2,16 @@ import json
 import subprocess
 import os
 import re
-import psutil
-import time
 import searchJava
 from findDataFile import find_data_file as finddata
-import asyncio
-from tkinter import simpledialog
+import zipfile
 
 #サーバー実行
 def startServer(saved_content, timeout=None):
     os.chdir(finddata())
     returnText = ""
     if saved_content["path"] != "":
-        json_open = open("data/java_path.json",'r',encoding="utf-8_sig")
-        java_paths = json.load(json_open)
-        json_open.close()
-        if not "17" in java_paths and not "18" in java_paths:
-            search_path()
-            json_open = open("data/java_path.json","r",encoding="utf-8_sig")
-            java_paths = json.load(json_open)
-        for v in ["18","17","16","15","14","13","12","11","10","9","8"]:
-            if v in java_paths:
-                returnText = check_bit(java_paths[v]["path"],java_paths[v]["bit"], saved_content,timeout)
-                return returnText
-        return "javaが見つかりませんでした\njavaをインストールするか、詳細設定画面から検出してください\njava17以上のインストールを推奨します"
+        returnText = use_command(saved_content)
     else:
         print("error - path未設定")
         returnText = "サーバーを指定してください"
@@ -37,14 +23,15 @@ def search_path():
     json_open = open("data/java_path.json",'r',encoding="utf-8_sig")
     java_paths = json.load(json_open)
     java_paths = searchJava.compound_javaLists(java_paths,paths)
+    json_open.close()
     os.chdir(finddata())
     json_write = open('data/java_path.json','w',encoding="utf-8_sig")
     json.dump(java_paths, json_write, ensure_ascii=False, indent=4)
+    json_write.close()
 
-def check_bit(javaPath, bit, saved_content, timeout):
-    print("cmd: " + javaPath)
+def check_bit(bit, saved_content):
     if bit == "64":
-            return use_command(javaPath,saved_content,timeout)
+            return ""
     else:
         if int(saved_content["memory"]) > 4096:
             print("memory error : 32bit java cannot use over 4gb")
@@ -53,12 +40,12 @@ def check_bit(javaPath, bit, saved_content, timeout):
             print("memory error : 32bit java cannot use over 4gb")
             return "メモリ割り当てエラー\n32bitJavaに4GB以上を割り当てられません"
         else:
-            return use_command(javaPath,saved_content,timeout)
+            return ""
             
-def use_command(javaPath, saved_content, timeout):
+def use_command(saved_content):
 
     path = saved_content["path"]
-    reverse = "".join(reversed(path))
+    reverse = "".join(reversed(saved_content["path"]))
     target = reverse.find("/")
     pathDir = reverse[target:]
     pathDir = "".join(reversed(pathDir))
@@ -70,147 +57,99 @@ def use_command(javaPath, saved_content, timeout):
         unit = "G"
     memory = memory + unit
 
-    version = ""
-    pid = None
-    error = None
-    if os.path.isfile(pathDir + "version.txt") and timeout == None:
-        f = open(pathDir + 'version.txt', 'r', encoding='UTF-8')
-        version = f.read()
-        f.close()
-        print(version)
-        if not isint(version) and not version == "Exception":
-            if saved_content["vCheck"] == "1":
-                version, pid, error = asyncio.run(asyncio.wait_for(checkServerVersion("data\checkServerVer.bat",[f"{javaPath}",f"{pathDir}",f"{path}"]),60))
-                if error != None:
-                    if error == "java_error":
-                        return "サーバーの起動に失敗しました\n\n必要なバージョンのjavaが存在しない可能性が高いです\njava17以上であれば全てのバージョンを起動できるため\njava17以上のインストールを推奨しております\n\n既にインストール済みの場合は詳細設定のjava設定から検出を試してください"
-                    elif error == "error":
-                        return "サーバーの起動に失敗しました\n\n何らかのエラーが発生しました"
-                f = open(pathDir + 'version.txt', 'w', encoding='UTF-8')
-                f.write(version)
-                f.close()
-            else:
-                version = ""
-    else:
-        if saved_content["vCheck"] == "1" or not timeout == None:
-            print("version.txtを作成")
-            if timeout == None:
-                version, pid, error = asyncio.run(asyncio.wait_for(checkServerVersion("data\checkServerVer.bat",[f"{javaPath}",f"{pathDir}",f"{path}"]),60))
-            else:
-                version, pid, error = asyncio.run(asyncio.wait_for(checkServerVersion("data\checkServerVer.bat",[f"{javaPath}",f"{pathDir}",f"{path}"],errorCheck=True),timeout))
-            if error != None:
-                if error == "java_error":
-                    return "サーバーの起動に失敗しました\n\n必要なバージョンのjavaが存在しない可能性が高いです\njava17以上であれば全てのバージョンを起動できるため\njava17以上のインストールを推奨しております\n\n既にインストール済みの場合は詳細設定のjava設定から検出を試してください"
-                elif error == "error":
-                    return "サーバーの起動に失敗しました\n\n何らかのエラーが発生しました"
-            print(version)
-            if timeout == None:
-                f = open(pathDir + 'version.txt', 'w', encoding='UTF-8')
-                f.write(version)
-                f.close()
-        else:
-            version = ""
+    version, java_version = checkServerVersion(saved_content)
 
-    if timeout != None:
-        return "エラーは検出されませんでした"
+    if saved_content["vCheck"] == "1" and (version == "Exception" or version == ""):
+        return "バージョンの自動検出に失敗しました\nバージョンを手動で指定してください"
+    
+    if saved_content["vCheck"] == "0":
+        java_version = saved_content["versions_list"][saved_content["version_index"]][1]
 
-    if version == "Exception" or version == "":
-        version = askVersion(vCheck=saved_content["vCheck"])
-        if version == "cancel":
-            return "cancel"
-        else:
-            f = open(pathDir + "version.txt","w",encoding="UTF-8")
-            f.write(str(version))
-            f.close()
+    json_open = open("data/java_path.json",'r',encoding="utf-8_sig")
+    java_paths = json.load(json_open)
+    json_open.close()
+    if not java_version in java_paths:
+        search_path()
+        json_open = open("data/java_path.json","r",encoding="utf-8_sig")
+        java_paths = json.load(json_open)
+        json_open.close()
+        if not java_version in java_paths:
+            return f"javaバージョン: {java_version} が見つかりませんでした\nインストールするか、設定画面から検出してみてください"
+    javaPath = java_paths[java_version]["path"]
+
+    check = check_bit(java_paths[java_version]["bit"], saved_content)
+    if check != "":
+        return check
         
-    if checkEULA(pathDir) == False and int(version) >= 8:
+    v = version.split(".")
+    if checkEULA(pathDir) == False and (int(v[1]) >= 8 or int(v[0]) >= 2):
         return "サーバーの起動に失敗しました\n\neula.txtに同意してください\n規約に同意する場合\neula=false を eula=true\nに書き換え再実行してください"
 
     log4jON = "18"
     if version == "Exception":
         log4jON = "0"
-    elif int(version) == 17:
+    elif int(v[0]) == 1 and int(v[1]) == 17:
         log4jON = "17"
-    elif int(version) <= 16 and int(version) >= 12:
+    elif int(v[0]) == 1 and int(v[1]) <= 16 and int(v[1]) >= 12:
         log4jON = "16"
-    elif int(version) <= 11:
+    elif int(v[0]) == 1 and int(v[1]) <= 11:
         log4jON = "11"
-    if saved_content["log4j2"] == 0:
+    if saved_content["log4j2"] == "0":
         log4jON = "0"
 
     others = ""
     if saved_content["gui"] == "0":
         others = others + " nogui"
 
-    if pid != None:
-        while psutil.pid_exists(pid):
-            print(f"process: {psutil.pid_exists(pid)}")
-            time.sleep(1)
-            print(f"process: {psutil.pid_exists(pid)}")
+    command = ['data\openStarter.bat',f"{javaPath}",f"{pathDir}",f"{path}",memory,log4jON,f"{others}"]
+    subprocess.Popen(command, stdout = subprocess.PIPE)
+    return ""
 
-    command = ['data\openStarter.bat',f"{javaPath}",f"{pathDir}",f"{path}",memory,log4jON,f"{others}",str(os.getpid())]
-    cmdRun = subprocess.run(command, stdout = subprocess.PIPE)
-    print(cmdRun)
-    if cmdRun.returncode == 0:
-        return ""
-    else:
-        return "サーバーの実行中にエラーが発生しました\nサーバーファイルを指定し直してみてください"
+def checkServerVersion(saved_content): #jarファイル内を参照してバージョンを特定
+    file = zipfile.ZipFile(saved_content["path"])
+    list = file.namelist()
+    if ("version.json" in list): #version.jsonファイルがある場合(mc1.14以上)
+        with zipfile.ZipFile(saved_content["path"]) as z:
+            with z.open("version.json") as f:
+                base = str(f.read())
+                target = base.find("\"id\"")+6
+                text = base[target:]
+                target = text.find("\\n")
+                text = text[:target]
+                m = re.search(r'\d+\.\d+', text)
+                version = m.group()
 
-async def checkServerVersion(command, args, errorCheck=False):
-    version = ""
-    pid = None
-    error = None
+                if "\"java_version\"" in base:
+                    target = base.find("\"java_version\"")+15
+                    text = base[target:]
+                    target = text.find("\\n")
+                    text = text[:target]
+                    m = re.search(r'\d+', text)
+                    java_version = m.group()
 
-    os.chdir(finddata())
-    proc = await asyncio.create_subprocess_exec(command, *args, stdin=asyncio.subprocess.PIPE, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.STDOUT)
-
-    while True:
-        if proc.returncode != None:
-            error = "error"
-            break
-            
-        try:
-            line =  await asyncio.wait_for(proc.stdout.readline(), 20)
-        except:
-            print("timeout")
-            version = "Exception"
-            pid = proc.pid
-
-            proc.kill()
-            break
-        if line:
-            print(str(line))
-            if re.search("1\.[1-9][0-9]?(\.[0-9]+)?", str(line)) and not errorCheck:
-                version = re.search("1\.[1-9][0-9]?(\.[0-9]+)?", str(line)).group()
-
-                print(f"version:{version}")
-                target = version.find(".")
-                removed = "".join(reversed(version[target+1:]))
-                if version.count(".") != 1:
-                    target = removed.find(".")
-                    removed = removed[target+1:]
-                version = "".join(reversed(removed))
-
-                pid = proc.pid
-
-                await proc.communicate(b'stop')
-                break
-
-            if version == "" and ("Done" in str(line) or "done" in str(line)):
-                version = "Exception"
-                pid = proc.pid
-
-                await proc.communicate(b'stop')
-                break
-
-            if "UnsupportedClassVersion" in str(line):
-                version = ""
-                pid = proc.pid
-                error = "java_error"
-
-                break
-
-    return str(version), pid, error
+                    return version, java_version
+                else:
+                    return version, "8"
+    elif ("META-INF/log4j-provider.properties" in list): #versionファイルがなくlog4jのプロパティファイルがある場合(mc1.13以下)
+        #メモ Log4jAPIVersion = 2.0.0 だと1.7-1.11.2, Log4jAPIVersion = 2.1.0 だと1.12-1.16.5
+        with zipfile.ZipFile(saved_content["path"]) as z:
+            with z.open("META-INF/log4j-provider.properties") as f:
+                text = str(f.read())
+                target = text.find("Log4jAPIVersion = ")+18
+                text = text[target:]
+                target = text.find("\\n")
+                text = text[:target]
+                m = re.search(r'\d\.\d\.\d', text)
+                text = m.group()
+                if text == "2.0.0":
+                    return "1.7", "8"
+                elif text == "2.1.0":
+                    return "1.12", "8"
+                else:
+                    return "Exception", "8"
+    else: #検出できなかった時　プラグイン鯖などの際の処理もこちら
+        #META-INF/log4j-provider.propertiesがない場合だが、1.7未満のバージョンもこうなるので、Vanilaか否かのチェックボックスを置くべき
+        return "1.6", "8"
 
 def isint(s):  # 整数値を表しているかどうかを判定
     try:
@@ -219,27 +158,6 @@ def isint(s):  # 整数値を表しているかどうかを判定
         return False
     else:
         return True
-
-def askVersion(second = False, vCheck = "1"):
-    if second == False:
-        txt = "バージョンの自動検知に失敗しました\nバージョンを半角数字で入力してください\n*1.18.1 -> 18 のみを入力"
-        if vCheck != "1":
-            txt = "バージョンを半角数字で入力してください\n*1.18.1 -> 18 のみを入力"
-        ret = simpledialog.askstring("手動設定", txt)
-        if ret == None:
-            return "cancel"
-        elif isint(ret):
-            return ret
-        else:
-            return askVersion(second=True)
-    elif second == True:
-        ret = simpledialog.askstring("エラー", "バージョンを半角数字のみで入力してください\n*1.18.1 -> 18 のみを入力")
-        if ret == None:
-            return "cancel"
-        elif isint(ret):
-            return ret
-        else:
-            return askVersion(second=True)
 
 def checkEULA(pathDir):
     if os.path.exists(pathDir+"eula.txt"):
@@ -256,4 +174,4 @@ def checkEULA(pathDir):
             return False
     else:
         os.chdir(finddata())
-        return False
+        return True

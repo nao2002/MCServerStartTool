@@ -1,9 +1,9 @@
 @echo off
 
-rem ServerStarter 起動用batファイル created by lyomi_project
+rem ServerStarter 起動用batファイル created by nao2002_
 
 rem 以下対応引数
-rem (startServer.bat) javaパス サーバーディレクトリ サーバーファイル 割り当てメモリ(****M、*G) log4j その他引数(nogui等) pid
+rem (startServer.bat) javaパス サーバーディレクトリ サーバーファイル 割り当てメモリ(****M、*G) log4j その他引数(nogui等)
 
 title Server
 
@@ -23,8 +23,6 @@ copy /Y log4j2_112-116.xml "%~2" > nul
 )
 
 cd /d "%~2"
-
-taskkill /F /pid %~7 > nul
 
 java -Xms%4 -Xmx%4 %log4j%-jar "%~3"%~6
 
